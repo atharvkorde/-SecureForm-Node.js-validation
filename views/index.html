@@ -1,64 +1,134 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SecureForm - Student Registration</title>
+    <meta name="theme-color" content="#f0f3f9">
+    <title>Student Registration | SecureForm</title>
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-    <main class="container">
-        <h1>SecureForm</h1>
-        <p>Student Registration with Server-Side Validation</p>
+    <main class="page-wrapper">
+        <section class="registration-card">
+            <header class="card-header">
+                <span class="eyebrow">STUDENT PORTAL</span>
+                <h1>Student Registration</h1>
+                <p>Enter your details to register for your selected course.</p>
+            </header>
 
-        <form id="registrationForm">
-            <label for="name">Full Name</label>
-            <input id="name" name="name" type="text"
-                   minlength="2" maxlength="50" required>
+            <form id="registrationForm">
+                <div class="form-group">
+                    <label for="name">Full Name</label>
+                    <input id="name" name="name" type="text"
+                           placeholder="Enter your full name"
+                           minlength="2" maxlength="50" autocomplete="name" required>
+                </div>
 
-            <label for="email">Email Address</label>
-            <input id="email" name="email" type="email" required>
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input id="email" name="email" type="email"
+                           placeholder="student@example.com"
+                           autocomplete="email" required>
+                </div>
 
-            <label for="age">Age</label>
-            <input id="age" name="age" type="number"
-                   min="16" max="100" required>
+                <div class="form-group">
+                    <label for="age">Age</label>
+                    <input id="age" name="age" type="number"
+                           placeholder="Enter your age"
+                           min="16" max="100" required>
+                </div>
 
-            <label for="password">Password</label>
-            <input id="password" name="password" type="password"
-                   minlength="8" required>
+                <div class="form-group">
+                    <label for="mobile">Mobile Number</label>
+                    <input id="mobile" name="mobile" type="tel"
+                           placeholder="10-digit mobile number"
+                           inputmode="numeric" maxlength="10"
+                           autocomplete="tel" required>
+                </div>
 
-            <button type="submit">Register Student</button>
-        </form>
+                <div class="form-group">
+                    <label for="course">Select Course</label>
+                    <select id="course" name="course" required>
+                        <option value="">Choose a course</option>
+                        <option value="Computer Engineering">Computer Engineering</option>
+                        <option value="Information Technology">Information Technology</option>
+                        <option value="Software Engineering">Software Engineering</option>
+                        <option value="Data Science">Data Science</option>
+                        <option value="Artificial Intelligence">Artificial Intelligence</option>
+                    </select>
+                </div>
 
-        <div id="result" role="status" aria-live="polite"></div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input id="password" name="password" type="password"
+                           placeholder="At least 8 characters"
+                           minlength="8" autocomplete="new-password" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm Password</label>
+                    <input id="confirmPassword" name="confirmPassword"
+                           type="password" placeholder="Re-enter your password"
+                           minlength="8" autocomplete="new-password" required>
+                </div>
+
+                <button id="submitButton" type="submit">
+                    Register Student
+                </button>
+
+                <div id="result" role="status"
+                     aria-live="polite" tabindex="-1" hidden></div>
+            </form>
+
+            <footer class="card-footer">
+                Your submitted details will be validated by the Node.js server.
+            </footer>
+        </section>
     </main>
 
     <script>
         const form = document.getElementById("registrationForm");
         const result = document.getElementById("result");
+        const submitButton = document.getElementById("submitButton");
 
         form.addEventListener("submit", async (event) => {
             event.preventDefault();
-            result.textContent = "Submitting...";
+
+            result.hidden = true;
+            result.textContent = "";
             result.className = "";
+
+            submitButton.disabled = true;
+            submitButton.textContent = "Validating...";
 
             try {
                 const response = await fetch("/register", {
                     method: "POST",
-                    body: new URLSearchParams(new FormData(form)),
                     headers: {
                         "Content-Type": "application/x-www-form-urlencoded"
-                    }
+                    },
+                    body: new URLSearchParams(new FormData(form))
                 });
 
                 const data = await response.json();
-                result.className = data.success ? "success" : "error";
-                result.textContent = [data.message, ...(data.errors || [])].join(" ");
 
-                if (data.success) form.reset();
+                result.className = data.success ? "success-message" : "error-message";
+                result.textContent = [data.message, ...(data.errors || [])].join(" ");
+                result.hidden = false;
+
+                if (data.success) {
+                    form.reset();
+                }
+
+                result.focus();
             } catch (error) {
-                result.className = "error";
-                result.textContent = "Unable to connect to the server.";
+                result.className = "error-message";
+                result.textContent = "Unable to connect to the server. Please try again.";
+                result.hidden = false;
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = "Register Student";
             }
         });
     </script>
